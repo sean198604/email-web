@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="logo.jpg" alt="SEAN Logo" width="180">
+</p>
+
 # 邮件群发工具 · 网页版 · Email-Web
 
 > 📧 将商业桌面邮件群发工具复现为**多用户隔离**的网页版 SaaS 邮件发送系统  
