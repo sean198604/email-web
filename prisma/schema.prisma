@@ -1,0 +1,180 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ==================== 用户 ====================
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String
+  role      String   @default("user")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accounts    Account[]
+  groups      ContactGroup[]
+  contacts    Contact[]
+  templates   Template[]
+  tasks       Task[]
+  sendRecords SendRecord[]
+  blacklist   Blacklist[]
+  auditLogs   AuditLog[]
+  setting     Setting?
+}
+
+// ==================== 发件账号 ====================
+model Account {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  email         String
+  host          String
+  port          Int      @default(465)
+  secure        Boolean  @default(true)
+  authUser      String
+  authPass      String
+  replyTo       String?
+  dailyLimit    Int      @default(500)
+  hourlyLimit   Int      @default(50)
+  sendInterval  Int      @default(3000)
+  weight        Int      @default(1)
+  todaySent     Int      @default(0)
+  todaySentDate String?
+  enabled       Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([email, userId])
+}
+
+// ==================== 联系人分组 ====================
+model ContactGroup {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  contacts    Contact[]
+  tasks       Task[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@unique([name, userId])
+}
+
+// ==================== 联系人 ====================
+model Contact {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String?
+  email      String
+  tags       String   @default("[]")
+  variables  String   @default("{}")
+  customer   String?
+  groupId    String?
+  group      ContactGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([email, groupId])
+}
+
+// ==================== 邮件模板 ====================
+model Template {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  subject     String
+  htmlContent String
+  textContent String?
+  category    String?
+  variables   String   @default("[]")
+  tasks       Task[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ==================== 群发任务 ====================
+model Task {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  status        String    @default("draft")
+  templateId    String?
+  template      Template? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  groupId       String?
+  group         ContactGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  tagFilter     String?
+  accountIds    String    @default("[]")
+  strategy      String    @default("round-robin")
+  sendInterval  Int       @default(3000)
+  maxThreads    Int       @default(1)
+  scheduledAt   String?
+  attachments   String    @default("[]")
+  footerHtml    String    @default("")
+  unsubscribeLink Boolean @default(false)
+  totalCount    Int       @default(0)
+  sentCount     Int       @default(0)
+  failCount     Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sendRecords   SendRecord[]
+}
+
+// ==================== 发送记录 ====================
+model SendRecord {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskId       String
+  task         Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  contactEmail String
+  contactName  String?
+  customer     String?
+  accountEmail String?
+  status       String
+  errorMessage String?
+  sentAt       DateTime @default(now())
+}
+
+// ==================== 黑名单 ====================
+model Blacklist {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  value     String
+  type      String   @default("email")
+  reason    String?
+  createdAt DateTime @default(now())
+
+  @@unique([value, type, userId])
+}
+
+// ==================== 操作日志 ====================
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action    String
+  detail    String?
+  level     String   @default("info")
+  createdAt DateTime @default(now())
+}
+
+// ==================== 系统设置 ====================
+model Setting {
+  id        String @id @default(cuid())
+  userId    String @unique
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  data      String @default("{}")
+}

@@ -1,0 +1,14 @@
+node_modules
+.next
+.git
+data
+*.db
+*.db-journal
+.env
+.env.*
+npm-debug.log
+README.md
+项目说明.md
+Dockerfile
+docker-compose.yml
+.dockerignore

@@ -1,0 +1,32 @@
+services:
+  email-web:
+    build: .
+    image: email-web:latest
+    container_name: email-web
+    ports:
+      - "5051:5051"
+    environment:
+      NODE_ENV: production
+      PORT: "5051"
+      DATABASE_URL: "file:/app/data/dev.db"
+      # JWT 签名密钥：从 .env 读取（openssl rand -base64 48 生成），请勿在此硬编码
+      JWT_SECRET: ${JWT_SECRET}
+      # 通过 http://(非 HTTPS) 访问时必须设为 false，否则浏览器拒绝保存登录 cookie
+      COOKIE_SECURE: "false"
+      # 管理员引导：用该邮箱 + 密码注册，自动成为管理员(role=admin)
+      ADMIN_EMAIL: "admin@ego.com"
+      # 管理员密码：从 .env 读取，请勿在此硬编码
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+    volumes:
+      # SQLite 数据持久化（容器内写入，不随容器销毁丢失）
+      - email_data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:5051/login').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  email_data:
