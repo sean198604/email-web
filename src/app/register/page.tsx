@@ -50,7 +50,7 @@ export default function RegisterPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <Image src="/logo.png" alt="EGO International" width={64} height={64} className="h-16 w-auto" />
+            <Image src="/logo.jpg" alt="Email-Web" width={64} height={64} className="h-16 w-auto" />
           </div>
           <CardTitle className="text-2xl">创建账号</CardTitle>
           <CardDescription>每个账号数据完全隔离</CardDescription>

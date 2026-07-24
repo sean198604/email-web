@@ -13,11 +13,11 @@ const geistSans = Geist({
 
 export const metadata: Metadata = {
   title: "邮件群发工具",
-  description: "专业高效的邮件群发桌面软件",
+  description: "专业高效的网页版邮件群发系统",
 };
 
 // 在首屏绘制前根据本地缓存的主题设置 .dark 类，避免深浅色闪烁
-const themeInitScript = `try{var t=localStorage.getItem('ego-theme')||'system';var d=t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d)document.documentElement.classList.add('dark');}catch(e){}`;
+const themeInitScript = `try{var t=localStorage.getItem('email-web-theme')||'system';var d=t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d)document.documentElement.classList.add('dark');}catch(e){}`;
 
 export default function RootLayout({
   children,

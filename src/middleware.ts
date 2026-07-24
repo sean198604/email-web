@@ -2,10 +2,13 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 
-const JWT_SECRET = process.env.JWT_SECRET || "email-web-default-secret-change-in-production";
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET environment variable is required");
+}
 
 const PUBLIC_PATHS = ["/login", "/register", "/api/auth/login", "/api/auth/register", "/api/auth/logout"];
-const PUBLIC_PREFIXES = ["/_next/", "/favicon.ico", "/logo.png", "/api/auth/"];
+const PUBLIC_PREFIXES = ["/_next/", "/favicon.ico", "/logo.jpg", "/api/auth/"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -28,5 +31,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|logo.png|.*\\.png$|.*\\.svg$).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|logo.jpg|.*\\.png$|.*\\.svg$).*)"],
 };

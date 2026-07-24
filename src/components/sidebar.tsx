@@ -74,8 +74,8 @@ export function Sidebar() {
           <Menu className="h-5 w-5" />
         </Button>
         <Image
-          src="/logo.png"
-          alt="EGO International"
+          src="/logo.jpg"
+          alt="Email-Web"
           width={28}
           height={28}
           className="h-7 w-auto"
@@ -101,8 +101,8 @@ export function Sidebar() {
       >
       <div className="h-16 flex items-center px-4 border-b border-foreground/10">
         <Image
-          src="/logo.png"
-          alt="EGO International"
+          src="/logo.jpg"
+          alt="Email-Web"
           width={32}
           height={32}
           className="h-8 w-auto mr-2 shrink-0"

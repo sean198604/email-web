@@ -13,8 +13,8 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       # 通过 http://(非 HTTPS) 访问时必须设为 false，否则浏览器拒绝保存登录 cookie
       COOKIE_SECURE: "false"
-      # 管理员引导：用该邮箱 + 密码注册，自动成为管理员(role=admin)
-      ADMIN_EMAIL: "admin@ego.com"
+      # 管理员引导：用该邮箱 + 密码注册，自动成为管理员(role=admin)，从 .env 读取，请勿硬编码
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
       # 管理员密码：从 .env 读取，请勿在此硬编码
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
     volumes:

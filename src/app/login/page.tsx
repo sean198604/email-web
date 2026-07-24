@@ -51,10 +51,10 @@ export default function LoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <Image src="/logo.png" alt="EGO International" width={64} height={64} className="h-16 w-auto" />
+            <Image src="/logo.jpg" alt="Email-Web" width={64} height={64} className="h-16 w-auto" />
           </div>
           <CardTitle className="text-2xl">邮件群发工具</CardTitle>
-          <CardDescription>使用 EGO International 账号登录</CardDescription>
+          <CardDescription>使用 Email-Web 账号登录</CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
