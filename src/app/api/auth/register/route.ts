@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { hashPassword, signToken, setAuthCookie } from "@/lib/auth";
+import { DEFAULT_TEMPLATES } from "@/lib/default-templates";
 
 export async function POST(request: Request) {
   try {

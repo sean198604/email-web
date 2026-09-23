@@ -5,7 +5,8 @@ import { jwtVerify } from "jose";
 const JWT_SECRET = process.env.JWT_SECRET;
 
 const PUBLIC_PATHS = ["/login", "/register", "/api/auth/login", "/api/auth/register", "/api/auth/logout"];
-const PUBLIC_PREFIXES = ["/_next/", "/favicon.ico", "/logo.jpg", "/api/auth/"];
+// 追踪像素和点击跳转由收件人的邮件客户端请求，不携带登录 Cookie，必须公开访问。
+const PUBLIC_PREFIXES = ["/_next/", "/favicon.ico", "/logo.jpg", "/api/auth/", "/api/track/"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

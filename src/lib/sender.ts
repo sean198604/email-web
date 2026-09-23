@@ -1,5 +1,6 @@
 import { prisma } from "./db";
 import { sendEmail } from "./mailer";
+import { injectTracking, getTrackingBaseUrl } from "./tracking";
 import type { Account } from "@/generated/prisma/client";
 
 type AccountQuota = Account & { remaining: number };
@@ -119,18 +120,8 @@ export async function startTaskSend(taskId: string, userId: string): Promise<voi
         html += `<br/><br/><p style="font-size:12px;color:#999;">如果您不想再收到此类邮件，请<a href="mailto:${account.email}?subject=退订请求&body=请将我${encodedEmail}从邮件列表中移除">点击退订</a></p>`;
       }
 
-      const result = await sendEmail(
-        account,
-        contact.email,
-        subject,
-        html,
-        text,
-        undefined,
-        attachments.length > 0 ? attachments.map((a) => ({ filename: a.filename, path: a.path })) : undefined
-      );
-
-      // Record
-      await prisma.sendRecord.create({
+      // 先落一条发送记录拿到 id，再据此注入追踪像素/改写链接（追踪以 sendRecord.id 为令牌）
+      const sr = await prisma.sendRecord.create({
         data: {
           userId,
           taskId,
@@ -138,6 +129,27 @@ export async function startTaskSend(taskId: string, userId: string): Promise<voi
           contactName: contact.name,
           customer: contact.customer,
           accountEmail: account.email,
+          status: "pending",
+        },
+      });
+
+      // 注入邮件追踪：打开像素 + 链接改写为点击跳转
+      const trackedHtml = injectTracking(html, sr.id, getTrackingBaseUrl());
+
+      const result = await sendEmail(
+        account,
+        contact.email,
+        subject,
+        trackedHtml,
+        text,
+        undefined,
+        attachments.length > 0 ? attachments.map((a) => ({ filename: a.filename, path: a.path })) : undefined
+      );
+
+      // Record
+      await prisma.sendRecord.update({
+        where: { id: sr.id },
+        data: {
           status: result.success ? "success" : "failed",
           errorMessage: result.error,
         },

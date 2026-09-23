@@ -198,3 +198,14 @@
     @apply font-sans;
   }
 }
+
+/* ===== 移动端优化 ===== */
+/* 数据表格在窄屏横向滚动，避免溢出把页面撑宽 */
+@media (max-width: 767px) {
+  main table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}

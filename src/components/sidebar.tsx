@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import {
   LayoutDashboard,
   Users,
@@ -16,10 +15,12 @@ import {
   LogOut,
   User,
   Menu,
+  Eye,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { LogoBadge } from "@/components/logo-badge";
 
 const navItems = [
   { icon: LayoutDashboard, label: "仪表盘", href: "/" },
@@ -28,6 +29,7 @@ const navItems = [
   { icon: Send, label: "群发任务", href: "/tasks" },
   { icon: Server, label: "账号管理", href: "/accounts" },
   { icon: List, label: "发送日志", href: "/logs" },
+  { icon: Eye, label: "邮件追踪", href: "/tracking" },
   { icon: Shield, label: "黑名单", href: "/blacklist" },
   { icon: Settings, label: "设置", href: "/settings" },
 ];
@@ -73,13 +75,7 @@ export function Sidebar() {
         >
           <Menu className="h-5 w-5" />
         </Button>
-        <Image
-          src="/logo.jpg"
-          alt="Email-Web"
-          width={28}
-          height={28}
-          className="h-7 w-auto"
-        />
+        <LogoBadge className="h-8 w-8 rounded-xl" />
         <span className="font-semibold text-sm truncate">邮件群发工具</span>
       </div>
 
@@ -100,13 +96,7 @@ export function Sidebar() {
         )}
       >
       <div className="h-16 flex items-center px-4 border-b border-foreground/10">
-        <Image
-          src="/logo.jpg"
-          alt="Email-Web"
-          width={32}
-          height={32}
-          className="h-8 w-auto mr-2 shrink-0"
-        />
+        <LogoBadge className="h-9 w-9 rounded-xl mr-2 shrink-0" />
         <span className="font-semibold text-foreground text-sm truncate">邮件群发工具</span>
       </div>
       <nav className="flex-1 py-2 overflow-y-auto">

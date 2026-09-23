@@ -145,6 +145,13 @@ model SendRecord {
   status       String
   errorMessage String?
   sentAt       DateTime @default(now())
+
+  // ==================== 邮件追踪 ====================
+  openedAt     DateTime? // 首次打开时间（追踪像素加载）
+  openCount    Int       @default(0) // 打开次数（像素加载累计）
+  clickedAt    DateTime? // 首次点击时间
+  clickCount   Int       @default(0) // 链接点击次数（累计）
+  lastClickUrl String? // 最近一次点击的原始链接
 }
 
 // ==================== 黑名单 ====================

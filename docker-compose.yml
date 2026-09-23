@@ -25,6 +25,8 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       # 名片宝地址（customer-research, 端口 7004）：容器内通过 host.docker.internal 访问宿主机
       CARD_RESEARCH_BASE_URL: ${CARD_RESEARCH_BASE_URL:-http://host.docker.internal:7004}
+      # 邮件追踪基址：本地用 localhost:5051；部署到 PocketBay 时设为 https://email.pocketbay.app
+      APP_URL: ${APP_URL:-http://localhost:5051}
       # AI 介绍信：DeepSeek（OpenAI 兼容协议），从 .env 读取，请勿硬编码
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
       DEEPSEEK_BASE_URL: ${DEEPSEEK_BASE_URL:-https://api.deepseek.com/v1}

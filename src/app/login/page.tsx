@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { LogoBadge } from "@/components/logo-badge";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -47,11 +47,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-[calc(100dvh-3.5rem)] md:min-h-[100dvh] flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <Image src="/logo.jpg" alt="Email-Web" width={64} height={64} className="h-16 w-auto" />
+            <LogoBadge className="h-16 w-16" />
           </div>
           <CardTitle className="text-2xl">邮件群发工具</CardTitle>
           <CardDescription>使用 Email-Web 账号登录</CardDescription>

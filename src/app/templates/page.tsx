@@ -9,6 +9,7 @@ import {
   Copy,
   FileText,
   Search,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DEFAULT_TEMPLATES } from "@/lib/default-templates";
 import {
   Dialog,
   DialogContent,
@@ -70,6 +72,7 @@ export default function TemplatesPage() {
   const [showDialog, setShowDialog] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [seeding, setSeeding] = useState(false);
 
   // Form
   const [form, setForm] = useState({
@@ -132,6 +135,17 @@ export default function TemplatesPage() {
     setShowDialog(true);
   };
 
+  const applyPreset = (preset: (typeof DEFAULT_TEMPLATES)[number]) => {
+    setForm({
+      name: preset.name,
+      subject: preset.subject,
+      category: preset.category || "",
+      htmlContent: preset.htmlContent,
+      textContent: preset.textContent || "",
+    });
+    toast.success(`已套用预设：${preset.name}`);
+  };
+
   const handleSubmit = async () => {
     try {
       const body = {
@@ -187,6 +201,24 @@ export default function TemplatesPage() {
     }
   };
 
+  const handleSeedDefaults = async () => {
+    try {
+      setSeeding(true);
+      const res = await fetch("/api/templates/seed", { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        toast.success(data.message || "默认模板已添加");
+        fetchTemplates();
+      } else {
+        toast.error(data.error || "添加失败");
+      }
+    } catch (error) {
+      toast.error("添加默认模板失败");
+    } finally {
+      setSeeding(false);
+    }
+  };
+
   const filtered = templates.filter((t) => {
     if (!search) return true;
     const lower = search.toLowerCase();
@@ -229,10 +261,16 @@ export default function TemplatesPage() {
             管理邮件模板，支持HTML编辑和变量替换
           </p>
         </div>
-        <Button onClick={openNew}>
-          <Plus className="mr-2 h-4 w-4" />
-          新建模板
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={handleSeedDefaults} disabled={seeding}>
+            <Sparkles className="mr-2 h-4 w-4" />
+            {seeding ? "添加中..." : "添加默认模板"}
+          </Button>
+          <Button onClick={openNew}>
+            <Plus className="mr-2 h-4 w-4" />
+            新建模板
+          </Button>
+        </div>
       </div>
 
       <div className="relative max-w-sm">
@@ -324,6 +362,28 @@ export default function TemplatesPage() {
           <DialogHeader>
             <DialogTitle>{editId ? "编辑模板" : "新建模板"}</DialogTitle>
           </DialogHeader>
+          {!editId && (
+            <div>
+              <p className="text-xs text-muted-foreground mb-2">
+                从预设开始（点击套用 HTML 模板，可再修改）
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {DEFAULT_TEMPLATES.map((t) => (
+                  <button
+                    key={t.name}
+                    type="button"
+                    onClick={() => applyPreset(t)}
+                    className="text-left rounded-xl border border-foreground/10 bg-white/40 hover:bg-primary/10 transition-colors p-2.5"
+                  >
+                    <div className="text-sm font-medium truncate">{t.name}</div>
+                    <div className="text-[11px] text-muted-foreground truncate">
+                      {t.category}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div>
