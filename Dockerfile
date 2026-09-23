@@ -19,6 +19,10 @@ RUN npx prisma generate
 # ============================================================
 FROM node:22-slim AS builder
 WORKDIR /app
+# 本地构建传 PRISMA_SCHEMA_FILE=prisma/schema.sqlite.prisma 生成 SQLite 客户端；
+# 平台构建不传（默认空）→ 使用 schema.prisma（postgresql）。
+ARG PRISMA_SCHEMA_FILE
+ENV PRISMA_SCHEMA_FILE=$PRISMA_SCHEMA_FILE
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 make g++ \
     && rm -rf /var/lib/apt/lists/*
@@ -36,15 +40,18 @@ FROM node:22-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=5051
-ENV DATABASE_URL="file:/app/data/dev.db"
+ENV DATABASE_URL="file:/data/dev.db"
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # 安装 openssl（Prisma 引擎依赖，消除 libssl 版本警告）
 RUN apt-get update && apt-get install -y --no-install-recommends openssl \
     && rm -rf /var/lib/apt/lists/*
 
-# 数据库文件持久化目录（由 docker-compose 卷挂载）
-RUN mkdir -p /app/data
+# 数据库文件持久化目录：PocketBay 挂载 /data 持久卷（跨更新保留）；本地 docker-compose 用 environment 覆盖为 /app/data
+RUN mkdir -p /data
+
+# 运行时同样透传 PRISMA_SCHEMA_FILE（本地 compose 会设为 sqlite；平台不传则使用默认 postgresql schema）
+ENV PRISMA_SCHEMA_FILE=$PRISMA_SCHEMA_FILE
 
 # 复制运行所需文件
 COPY --from=builder /app/node_modules ./node_modules
@@ -57,5 +64,5 @@ COPY --from=builder /app/src/generated ./src/generated
 
 EXPOSE 5051
 
-# 启动时先执行迁移（已存在则自动跳过），再启动服务
-CMD ["sh", "-c", "npx prisma migrate deploy && npm run start"]
+# 启动由 scripts/start.mjs 按 DATABASE_URL 自动选择 db push / migrate deploy，再 next start
+CMD ["npm", "run", "start"]

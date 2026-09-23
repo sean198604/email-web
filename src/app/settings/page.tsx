@@ -12,6 +12,8 @@ import {
   Save,
   Download,
   Upload,
+  Bot,
+  Contact,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +42,10 @@ interface AppSettings {
   unsubscribeLink?: boolean;
   footerHtml?: string;
   language?: string;
+  aiApiKey?: string;
+  aiBaseUrl?: string;
+  aiModel?: string;
+  cardResearchUrl?: string;
 }
 
 export default function SettingsPage() {
@@ -52,6 +58,12 @@ export default function SettingsPage() {
   const [spamWords, setSpamWords] = useState("");
   const [unsubscribeLink, setUnsubscribeLink] = useState(false);
   const [footerHtml, setFooterHtml] = useState("");
+
+  // AI 与名片宝
+  const [aiApiKey, setAiApiKey] = useState("");
+  const [aiBaseUrl, setAiBaseUrl] = useState("");
+  const [aiModel, setAiModel] = useState("");
+  const [cardResearchUrl, setCardResearchUrl] = useState("");
 
   // Import/Export
   const [importFile, setImportFile] = useState<File | null>(null);
@@ -66,6 +78,10 @@ export default function SettingsPage() {
         setSpamWords((data.spamWords || []).join("\n"));
         setUnsubscribeLink(data.unsubscribeLink || false);
         setFooterHtml(data.footerHtml || "");
+        setAiApiKey(data.aiApiKey || "");
+        setAiBaseUrl(data.aiBaseUrl || "");
+        setAiModel(data.aiModel || "");
+        setCardResearchUrl(data.cardResearchUrl || "");
       }
     } catch (error) {
       toast.error("获取设置失败");
@@ -90,6 +106,10 @@ export default function SettingsPage() {
           .filter(Boolean),
         unsubscribeLink,
         footerHtml,
+        aiApiKey: aiApiKey || undefined,
+        aiBaseUrl: aiBaseUrl || undefined,
+        aiModel: aiModel || undefined,
+        cardResearchUrl: cardResearchUrl || undefined,
       };
 
       const res = await fetch("/api/settings", {
@@ -359,6 +379,69 @@ export default function SettingsPage() {
                   placeholder={'<p style="color:#999;font-size:12px;">\n  此邮件由系统自动发送...\n</p>'}
                   className="min-h-[120px] font-mono text-sm"
                 />
+              </CardContent>
+            </Card>
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* AI & 名片宝 */}
+        <AccordionItem value="ai">
+          <AccordionTrigger>
+            <div className="flex items-center gap-2">
+              <Bot className="h-4 w-4" />
+              <span>AI 介绍信 & 名片宝</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent>
+            <Card>
+              <CardContent className="p-4 space-y-4">
+                <div>
+                  <Label>AI 服务商</Label>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    当前使用 DeepSeek（OpenAI 兼容协议）。未填写时回退服务端 .env 的 DEEPSEEK_API_KEY
+                  </p>
+                </div>
+                <div>
+                  <Label>AI API Key（可选，留空则用服务端密钥）</Label>
+                  <Input
+                    type="password"
+                    value={aiApiKey}
+                    onChange={(e) => setAiApiKey(e.target.value)}
+                    placeholder="sk-...（仅本人可见，保存在本账户设置中）"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label>API Base URL</Label>
+                    <Input
+                      value={aiBaseUrl}
+                      onChange={(e) => setAiBaseUrl(e.target.value)}
+                      placeholder="https://api.deepseek.com/v1"
+                    />
+                  </div>
+                  <div>
+                    <Label>模型</Label>
+                    <Input
+                      value={aiModel}
+                      onChange={(e) => setAiModel(e.target.value)}
+                      placeholder="deepseek-chat"
+                    />
+                  </div>
+                </div>
+                <div className="border-t pt-4">
+                  <Label>名片宝地址（customer-research）</Label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Contact className="h-4 w-4 text-muted-foreground" />
+                    <Input
+                      value={cardResearchUrl}
+                      onChange={(e) => setCardResearchUrl(e.target.value)}
+                      placeholder="http://host.docker.internal:7004"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    名片宝（端口 7004）需正在运行。留空使用默认地址（容器内访问宿主机的 host.docker.internal:7004）
+                  </p>
+                </div>
               </CardContent>
             </Card>
           </AccordionContent>

@@ -4,7 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
 }
 
 // ==================== 用户 ====================
@@ -64,7 +64,7 @@ model ContactGroup {
   contacts    Contact[]
   tasks       Task[]
   createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  updatedAt   DateTime @updatedAt
 
   @@unique([name, userId])
 }
@@ -127,7 +127,7 @@ model Task {
   sentCount     Int       @default(0)
   failCount     Int       @default(0)
   createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  updatedAt     DateTime @updatedAt
   sendRecords   SendRecord[]
 }
 
@@ -153,7 +153,7 @@ model Blacklist {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   value     String
-  type      String   @default("email")
+  type      String    @default("email")
   reason    String?
   createdAt DateTime @default(now())
 

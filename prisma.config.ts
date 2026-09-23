@@ -4,11 +4,15 @@ import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
 export default defineConfig({
-  schema: "prisma/schema.prisma",
+  schema: process.env["PRISMA_SCHEMA_FILE"] ?? "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    // 缺失时回退占位串，避免 Prisma CLI 在 DATABASE_URL 未注入时直接报
+    // "datasource.url property is required"；真实连接串由平台注入后自动生效。
+    url:
+      process.env["DATABASE_URL"] ??
+      "postgresql://db.invalid:5432/build_placeholder",
   },
 });

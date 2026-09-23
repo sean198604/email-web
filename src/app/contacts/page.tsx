@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
 import { toast } from "sonner";
 import {
   Plus,
@@ -11,8 +12,11 @@ import {
   ShieldBan,
   Pencil,
   GitMerge,
+  Sparkles,
+  Contact,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -115,6 +119,15 @@ export default function ContactsPage() {
   const [importPreview, setImportPreview] = useState<Record<string, string>[]>([]);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [importing, setImporting] = useState(false);
+
+  // 名片宝导入
+  const [showCardDialog, setShowCardDialog] = useState(false);
+  const [cardBaseUrl, setCardBaseUrl] = useState("");
+  const [cardTesting, setCardTesting] = useState(false);
+  const [cardTest, setCardTest] = useState<{ ok: boolean; count?: number; error?: string } | null>(null);
+  const [cardImporting, setCardImporting] = useState(false);
+  const [cardResult, setCardResult] = useState<ImportResult | null>(null);
+  const [cardGroupId, setCardGroupId] = useState("");
 
   // Bulk action state
   const [bulkGroupId, setBulkGroupId] = useState("");
@@ -378,6 +391,63 @@ export default function ContactsPage() {
       toast.error("导入失败");
     } finally {
       setImporting(false);
+    }
+  };
+
+  // 名片宝导入：测试连接 + 执行导入
+  const testCardConnection = async () => {
+    setCardTesting(true);
+    setCardTest(null);
+    try {
+      const params = new URLSearchParams();
+      if (cardBaseUrl.trim()) params.set("baseUrl", cardBaseUrl.trim());
+      const res = await fetch(`/api/contacts/import-cardresearch?${params}`);
+      const data = await res.json();
+      setCardTest(data);
+      if (!data.ok) {
+        toast.error(data.error || "连接名片宝失败");
+      } else {
+        toast.success(`连接成功，名片宝共有 ${data.count} 条客户档案`);
+      }
+    } catch (error) {
+      toast.error("连接名片宝失败");
+    } finally {
+      setCardTesting(false);
+    }
+  };
+
+  const importFromCard = async () => {
+    setCardImporting(true);
+    setCardResult(null);
+    try {
+      const res = await fetch("/api/contacts/import-cardresearch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          baseUrl: cardBaseUrl.trim() || undefined,
+          groupId: cardGroupId && cardGroupId !== "none" ? cardGroupId : null,
+        }),
+      });
+      if (res.ok) {
+        const result = await res.json();
+        setCardResult(result);
+        if (result.imported > 0) {
+          toast.success(`已从名片宝导入 ${result.imported} 条`);
+          fetchContacts();
+        } else {
+          toast.info("没有新导入的记录（可能已全部存在）");
+        }
+        if (result.errors && result.errors.length > 0) {
+          toast.warning(`${result.errors.length} 条导入出错`);
+        }
+      } else {
+        const err = await res.json();
+        toast.error(err.error || "导入失败");
+      }
+    } catch (error) {
+      toast.error("从名片宝导入失败");
+    } finally {
+      setCardImporting(false);
     }
   };
 
@@ -708,6 +778,90 @@ export default function ContactsPage() {
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
+
+                <Link
+                  href="/ai-intro"
+                  className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                >
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  AI 介绍信
+                </Link>
+
+                <Dialog open={showCardDialog} onOpenChange={setShowCardDialog}>
+                  <DialogTrigger>
+                    <Button variant="outline" size="sm">
+                      <Contact className="mr-2 h-4 w-4" />
+                      从名片宝导入
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-xl">
+                    <DialogHeader>
+                      <DialogTitle>从名片宝导入客户档案</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label>名片宝地址</Label>
+                        <Input
+                          value={cardBaseUrl}
+                          onChange={(e) => setCardBaseUrl(e.target.value)}
+                          placeholder="http://host.docker.internal:7004（默认）"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          名片宝（customer-research, 端口 7004）需正在运行。容器间用 host.docker.internal 访问宿主机。
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm" onClick={testCardConnection} disabled={cardTesting}>
+                          {cardTesting ? "测试中..." : "测试连接"}
+                        </Button>
+                        {cardTest && (
+                          <span className={cardTest.ok ? "text-xs text-green-600" : "text-xs text-destructive"}>
+                            {cardTest.ok ? `已连接，共 ${cardTest.count} 条` : cardTest.error}
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <Label>导入到分组</Label>
+                        <Select value={cardGroupId} onValueChange={(v) => setCardGroupId(v ?? "")}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="选择分组" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">不指定</SelectItem>
+                            {groups.map((g) => (
+                              <SelectItem key={g.id} value={g.id}>
+                                {g.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {cardResult && (
+                        <div className="p-3 rounded-md bg-muted text-sm">
+                          <p>
+                            导入结果：成功 {cardResult.imported} 条，跳过 {cardResult.skipped} 条（共 {cardResult.total} 条）
+                          </p>
+                          {cardResult.errors && cardResult.errors.length > 0 && (
+                            <div className="mt-2 text-xs text-destructive">
+                              {cardResult.errors.slice(0, 5).map((err, i) => (
+                                <p key={i}>{err}</p>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setShowCardDialog(false)}>
+                        关闭
+                      </Button>
+                      <Button onClick={importFromCard} disabled={cardImporting || !cardTest?.ok}>
+                        {cardImporting ? "导入中..." : "开始导入"}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
 
               {/* Bulk Actions */}
@@ -798,13 +952,22 @@ export default function ContactsPage() {
                           <TableCell>{contact.customer || "-"}</TableCell>
                           <TableCell>{getGroupName(contact.groupId)}</TableCell>
                           <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => openEdit(contact)}
-                            >
-                              <Pencil className="h-3 w-3" />
-                            </Button>
+                            <div className="flex gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => openEdit(contact)}
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                              <Link
+                                href={`/ai-intro?contactId=${contact.id}`}
+                                title="写 AI 介绍信"
+                                className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
+                              >
+                                <Sparkles className="h-3 w-3" />
+                              </Link>
+                            </div>
                           </TableCell>
                         </TableRow>
                       );

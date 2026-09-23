@@ -1,6 +1,10 @@
 services:
   email-web:
-    build: .
+    build:
+      context: .
+      args:
+        # 本地构建生成 SQLite 客户端（与本地 sqlite 库匹配）；平台部署不要传此参数
+        PRISMA_SCHEMA_FILE: "prisma/schema.sqlite.prisma"
     image: email-web:latest
     container_name: email-web
     ports:
@@ -9,6 +13,8 @@ services:
       NODE_ENV: production
       PORT: "5051"
       DATABASE_URL: "file:/app/data/dev.db"
+      # 本地使用 SQLite schema；平台部署由平台注入的 schema.prisma（postgresql）生效
+      PRISMA_SCHEMA_FILE: "prisma/schema.sqlite.prisma"
       # JWT 签名密钥：从 .env 读取（openssl rand -base64 48 生成），请勿在此硬编码
       JWT_SECRET: ${JWT_SECRET}
       # 通过 http://(非 HTTPS) 访问时必须设为 false，否则浏览器拒绝保存登录 cookie
@@ -17,6 +23,12 @@ services:
       ADMIN_EMAIL: ${ADMIN_EMAIL}
       # 管理员密码：从 .env 读取，请勿在此硬编码
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      # 名片宝地址（customer-research, 端口 7004）：容器内通过 host.docker.internal 访问宿主机
+      CARD_RESEARCH_BASE_URL: ${CARD_RESEARCH_BASE_URL:-http://host.docker.internal:7004}
+      # AI 介绍信：DeepSeek（OpenAI 兼容协议），从 .env 读取，请勿硬编码
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
+      DEEPSEEK_BASE_URL: ${DEEPSEEK_BASE_URL:-https://api.deepseek.com/v1}
+      DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-deepseek-chat}
     volumes:
       # SQLite 数据持久化（容器内写入，不随容器销毁丢失）
       - email_data:/app/data
