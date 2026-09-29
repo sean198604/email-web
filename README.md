@@ -1,5 +1,3 @@
-<p align="center"><img src="assets/readme-cover.png" alt="Email-Web project cover" width="100%" /></p>
-
 <div align="center">
 
 <img src="logo.jpg" alt="Email-Web" width="140" />
